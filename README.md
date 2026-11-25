@@ -1,132 +1,456 @@
-# Real-Time Chat Backend
+# 💬 Real-Time Chat Backend
 
-A real-time chat backend built with Node.js, TypeScript, Express, PostgreSQL (Prisma), Firebase Firestore, and Socket.IO.
+<p align="center">
+  A scalable, real-time chat backend built with modern backend technologies.
+</p>
 
----
-
-## 1. What This Project Is
-
-This is the backend of a chat app (like WhatsApp/Slack). It has no UI. It:
-
-- Stores users, chats, and chat membership in PostgreSQL.
-- Stores messages, read receipts, and last-seen data in Firebase Firestore.
-- Exposes 6 REST APIs.
-- Runs a Socket.IO server for real-time messaging.
-
----
-
-## 2. How It Works
-
-- **Create a chat** → PostgreSQL only.
-- **Send a message** → check membership in PostgreSQL → save to Firestore → broadcast over Socket.IO.
-- **Load history** → check membership in PostgreSQL → read from Firestore.
-- **Mark read / update last seen** → check membership → write to Firestore → broadcast.
-
-**Two databases on purpose:**
-- PostgreSQL = relational data (users, chats, members).
-- Firestore = event/stream data (messages, receipts, last-seen).
-
-
-## . Script
-
-Script	Description
-npm run dev	Dev server with hot reload
-npm run build	Compile TypeScript
-npm start	Run compiled build
-npm test	Run all tests
-npm run prisma:generate	Generate Prisma client
-npm run prisma:migrate	Apply migrations
-npm run prisma:studio	Open Prisma Studio
-npm run prisma:reset	Reset database
-npm run seed	Seed demo users
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-18%2B-green?logo=node.js" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-blue?logo=typescript" />
+  <img src="https://img.shields.io/badge/Express.js-Backend-black?logo=express" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma" />
+  <img src="https://img.shields.io/badge/Firebase-Firestore-orange?logo=firebase" />
+  <img src="https://img.shields.io/badge/Socket.IO-Realtime-black?logo=socket.io" />
+</p>
 
 ---
 
-## 3. Tech Stack
+## 📌 Overview
 
-| Layer | Tech |
+**Real-Time Chat Backend** is a backend service for a messaging application similar to WhatsApp or Slack.
+
+It provides REST APIs and real-time communication using Socket.IO, with PostgreSQL and Firebase Firestore working together to manage relational and messaging data.
+
+This project focuses on clean architecture, modular design, database separation, and real-time event-driven communication.
+
+### ✨ Key Features
+
+- 💬 Real-time messaging using Socket.IO
+- 👥 One-to-one chat creation
+- 🔐 Chat membership validation
+- 📩 Message storage using Firebase Firestore
+- ✅ Message read receipts
+- 🟢 Last-seen tracking
+- 📜 Message history with pagination
+- 🗄️ PostgreSQL for relational data
+- ⚡ Centralized error handling
+- 🧪 Automated testing with Jest and Supertest
+
+---
+
+## 🏗️ Architecture
+
+The application uses two databases, each responsible for a specific type of data.
+
+| Database | Responsibility |
+|---|---|
+| PostgreSQL | Users, chats, and chat memberships |
+| Firebase Firestore | Messages, read receipts, and last-seen information |
+
+### System Workflow
+
+```mermaid
+flowchart TD
+    A[Client Application] --> B[Express REST API]
+    A <--> C[Socket.IO Server]
+
+    B --> D[Chat Services]
+    C --> D
+
+    D --> E[PostgreSQL]
+    D --> F[Firebase Firestore]
+
+    E --> G[Users, Chats, Members]
+    F --> H[Messages, Read Receipts, Last Seen]
+
+    D --> C
+    C --> I[Room Broadcast]
+    I --> A
+```
+
+### 🔄 How It Works
+
+| Operation | Workflow |
+|---|---|
+| Create Chat | Store chat and members in PostgreSQL |
+| Send Message | Validate membership → Save to Firestore → Broadcast through Socket.IO |
+| Load History | Validate membership → Fetch messages from Firestore |
+| Mark as Read | Validate membership → Update Firestore → Broadcast event |
+| Update Last Seen | Validate membership → Update Firestore → Broadcast event |
+| List Chats | Fetch chat memberships from PostgreSQL |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
 |---|---|
 | Runtime | Node.js 18+ |
-| Language | TypeScript (strict) |
-| HTTP | Express.js |
-| Relational DB | PostgreSQL + Prisma |
-| Document DB | Firebase Firestore (Admin SDK) |
-| Realtime | Socket.IO |
+| Language | TypeScript (Strict Mode) |
+| HTTP Framework | Express.js |
+| Relational Database | PostgreSQL |
+| ORM | Prisma |
+| NoSQL Database | Firebase Firestore |
+| Real-Time Communication | Socket.IO |
 | Validation | Zod |
-| Testing | Jest + Supertest + socket.io-client |
+| Testing | Jest, Supertest, socket.io-client |
 
 ---
 
-## 4. Project Structure
+## 📁 Project Structure
 
+```text
+src/
+├── config/
+│   ├── database.ts
+│   ├── firebase.ts
+│   └── socket.ts
+│
+├── modules/
+│   ├── chat/
+│   │   ├── chat.controller.ts
+│   │   ├── chat.service.ts
+│   │   ├── chat.repository.ts
+│   │   └── chat.routes.ts
+│   │
+│   ├── message/
+│   │   ├── message.controller.ts
+│   │   ├── message.service.ts
+│   │   └── message.repository.ts
+│   │
+│   └── user/
+│       ├── user.controller.ts
+│       ├── user.service.ts
+│       └── user.routes.ts
+│
+├── sockets/
+│   └── chat.socket.ts
+│
+├── middleware/
+│   ├── validation.middleware.ts
+│   └── error.middleware.ts
+│
+├── utils/
+│   ├── response.ts
+│   └── errors.ts
+│
+├── types/
+│   └── index.ts
+│
+└── app.ts
+```
 
-Layers:
+### Architecture Responsibilities
 
-config/ — one-time setup (DB connections, Socket.IO server).
-modules/ — business logic split into service (logic), repository (DB), controller (HTTP), routes (URLs).
-sockets/ — real-time handlers that call the same services as REST.
-middleware/ — validation + centralized error handling.
-utils/ — response builders and custom error classes.
-types/ — shared TypeScript types.
-
-
-## 5. REST APIs
-
-Base URL: `http://localhost:4000`
-
-Success: `{ "success": true, "message": "optional", "data": {} }`
-Error: `{ "success": false, "error": { "code": "...", "message": "..." } }`
-
-| # | Method | Endpoint | Purpose |
-|---|---|---|---|
-| 1 | POST | `/chat/create` | Create or get a 1:1 chat |
-| 2 | POST | `/chat/:chatId/message/send` | Send a message |
-| 3 | GET | `/chat/:chatId/messages?limit=50&userId=` | Get messages (chronological) |
-| 4 | POST | `/chat/:chatId/message/:messageId/read` | Mark message read |
-| 5 | POST | `/chat/:chatId/lastseen` | Update last seen |
-| 6 | GET | `/user/:userId/chats` | List user's chats |
-
-**API 1** — Body: `{ userAId, userBId }` → `{ success, chatId }`
-
-**API 2** — Body: `{ senderId, text }` → `{ success, message, data: { id, chatId, senderId, text, createdAt } }`
-
-**API 3** — Returns messages in chronological order, supports `limit` and pagination.
-
-**API 4** — Body: `{ userId }` → `{ success, message }`. Idempotent.
-
-**API 5** — Body: `{ userId, messageId }` → `{ success, message }`.
-
-**API 6** — Returns `{ chatId, members[], createdAt }[]`. PostgreSQL only, no Firestore.
-
-
-## 6. Socket.IO Events
-
-Each `chatId` is a Socket.IO room. Only members join their chat's room.
-
-**Client → Server:**
-
-| Event | Payload | Server emits |
-|---|---|---|
-| `join_chat` | `{ chatId, userId }` | `joined_chat` |
-| `send_message` | `{ chatId, senderId, text }` | `receive_message` (room broadcast) |
-| `mark_message_read` | `{ chatId, messageId, userId }` | `message_read` (room broadcast) |
-| `update_last_seen` | `{ chatId, userId, messageId }` | `last_seen_updated` (room broadcast) |
-| `disconnect` | — | cleanup |
-
-**Server → Client:**
-
-| Event | Payload |
+| Directory | Responsibility |
 |---|---|
-| `joined_chat` | `{ success, chatId }` |
-| `receive_message` | `{ id, chatId, senderId, text, createdAt }` |
-| `message_read` | `{ chatId, messageId, userId, readAt }` |
-| `last_seen_updated` | `{ chatId, userId, messageId, lastSeenAt }` |
-| `error` | `{ code, message }` |
-
-**Rules:**
-- `send_message` saves to Firestore **before** broadcasting. If the save fails, nothing is broadcast.
-- The sender also receives their own message (room broadcast).
-- On disconnect, the socket leaves all rooms.
+| `config/` | Database connections, Firebase setup, Socket.IO initialization |
+| `modules/` | Business logic organized into controllers, services, repositories, and routes |
+| `sockets/` | Real-time event handlers |
+| `middleware/` | Request validation and centralized error handling |
+| `utils/` | Response builders and custom error classes |
+| `types/` | Shared TypeScript interfaces and types |
 
 ---
 
+## 🚀 Getting Started
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+- Node.js 18+
+- npm
+- PostgreSQL
+- Firebase project with Firestore enabled
+
+### 1. Clone the Repository
+
+```bash
+git clone <your-repository-url>
+cd <project-folder>
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the project root.
+
+```env
+PORT=4000
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/chat_db"
+
+# Firebase configuration
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=your-client-email
+FIREBASE_PRIVATE_KEY="your-private-key"
+```
+
+Use your Firebase Admin SDK credentials and keep sensitive credentials out of version control.
+
+### 4. Generate Prisma Client
+
+```bash
+npm run prisma:generate
+```
+
+### 5. Run Database Migrations
+
+```bash
+npm run prisma:migrate
+```
+
+### 6. Seed Demo Users
+
+```bash
+npm run seed
+```
+
+### 7. Start Development Server
+
+```bash
+npm run dev
+```
+
+Server will start at:
+
+```text
+http://localhost:4000
+```
+
+---
+
+## 📡 REST API Documentation
+
+**Base URL:** `http://localhost:4000`
+
+### Standard Response Format
+
+**Success Response**
+
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": {}
+}
+```
+
+**Error Response**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Something went wrong"
+  }
+}
+```
+
+### API Endpoints
+
+| # | Method | Endpoint | Description |
+|---|---|---|---|
+| 1 | POST | `/chat/create` | Create or retrieve a 1:1 chat |
+| 2 | POST | `/chat/:chatId/message/send` | Send a message |
+| 3 | GET | `/chat/:chatId/messages` | Retrieve chat history |
+| 4 | POST | `/chat/:chatId/message/:messageId/read` | Mark a message as read |
+| 5 | POST | `/chat/:chatId/lastseen` | Update last-seen information |
+| 6 | GET | `/user/:userId/chats` | Retrieve user's chats |
+
+### 1️⃣ Create or Get Chat
+
+`POST /chat/create`
+
+**Request Body**
+
+```json
+{
+  "userAId": "user_123",
+  "userBId": "user_456"
+}
+```
+
+**Purpose:**
+- Creates a new one-to-one chat if one doesn't exist.
+- Returns the existing chat if it already exists.
+
+**Response:** Returns the chat ID.
+
+### 2️⃣ Send Message
+
+`POST /chat/:chatId/message/send`
+
+**Request Body**
+
+```json
+{
+  "senderId": "user_123",
+  "text": "Hello! How are you?"
+}
+```
+
+**Purpose:**
+- Validates chat membership.
+- Saves the message to Firestore.
+- Returns the created message.
+
+### 3️⃣ Get Chat Messages
+
+`GET /chat/:chatId/messages?limit=50&userId=user_123`
+
+**Purpose:**
+- Validates user membership.
+- Retrieves messages from Firestore.
+- Supports pagination using `limit`.
+- Returns messages in chronological order.
+
+### 4️⃣ Mark Message as Read
+
+`POST /chat/:chatId/message/:messageId/read`
+
+**Request Body**
+
+```json
+{
+  "userId": "user_456"
+}
+```
+
+**Purpose:**
+- Validates chat membership.
+- Updates the read receipt in Firestore.
+- Broadcasts the read event.
+- Idempotent operation.
+
+### 5️⃣ Update Last Seen
+
+`POST /chat/:chatId/lastseen`
+
+**Request Body**
+
+```json
+{
+  "userId": "user_123",
+  "messageId": "message_789"
+}
+```
+
+**Purpose:**
+- Validates chat membership.
+- Updates last-seen information in Firestore.
+- Broadcasts the updated information.
+
+### 6️⃣ Get User Chats
+
+`GET /user/:userId/chats`
+
+**Purpose:**
+- Retrieves all chats associated with a user.
+- Returns chat IDs, members, and creation timestamps.
+- Uses PostgreSQL only.
+
+---
+
+## ⚡ Socket.IO Real-Time Events
+
+Every chat has its own Socket.IO room.
+
+Only authenticated chat members should be allowed to join their respective rooms.
+
+### Client → Server Events
+
+| Event | Payload | Description |
+|---|---|---|
+| `join_chat` | `{ chatId, userId }` | Join a chat room |
+| `send_message` | `{ chatId, senderId, text }` | Send a real-time message |
+| `mark_message_read` | `{ chatId, messageId, userId }` | Mark a message as read |
+| `update_last_seen` | `{ chatId, userId, messageId }` | Update last-seen status |
+| `disconnect` | — | Handle socket disconnection |
+
+### Server → Client Events
+
+| Event | Payload | Description |
+|---|---|---|
+| `joined_chat` | `{ success, chatId }` | Confirmation of room joining |
+| `receive_message` | `{ id, chatId, senderId, text, createdAt }` | New message notification |
+| `message_read` | `{ chatId, messageId, userId, readAt }` | Read receipt notification |
+| `last_seen_updated` | `{ chatId, userId, messageId, lastSeenAt }` | Last-seen update notification |
+| `error` | `{ code, message }` | Error notification |
+
+### 🔐 Socket Rules & Behavior
+
+- Each `chatId` represents a separate Socket.IO room.
+- Only chat members can join a room.
+- Messages are saved to Firestore before broadcasting.
+- If Firestore saving fails, the message is not broadcast.
+- The sender also receives their own message through room broadcasting.
+- Disconnected sockets leave their joined rooms.
+
+---
+
+## 📜 Available NPM Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server with hot reload |
+| `npm run build` | Compile TypeScript |
+| `npm start` | Run compiled application |
+| `npm test` | Run all tests |
+| `npm run prisma:generate` | Generate Prisma Client |
+| `npm run prisma:migrate` | Apply database migrations |
+| `npm run prisma:studio` | Open Prisma Studio |
+| `npm run prisma:reset` | Reset database |
+| `npm run seed` | Seed demo users |
+
+---
+
+## 🧪 Testing
+
+Run the complete test suite:
+
+```bash
+npm test
+```
+
+The project uses:
+
+- **Jest** – Test runner
+- **Supertest** – REST API testing
+- **socket.io-client** – Real-time event testing
+
+---
+
+## 🔒 Important Design Principles
+
+1. **Separation of Concerns:** Controllers, services, and repositories have separate responsibilities.
+2. **Database Separation:** PostgreSQL handles relational data, while Firestore handles message and activity data.
+3. **Membership Validation:** Chat access is validated before performing chat operations.
+4. **Data Consistency:** Messages are persisted before Socket.IO broadcasting.
+5. **Reusable Business Logic:** REST APIs and Socket.IO handlers use shared services.
+6. **Centralized Error Handling:** Consistent error responses across the application.
+
+---
+
+## 👨‍💻 Author
+
+**Pradeep Chauhan**
+
+Backend Developer | Node.js | TypeScript | PostgreSQL | Firebase | Socket.IO
+
+---
+
+<p align="center">
+  ⭐ If you find this project useful, consider giving it a star!
+</p>
+
+<p align="center">
+  Built with ❤️ using Node.js and TypeScript
+</p>
