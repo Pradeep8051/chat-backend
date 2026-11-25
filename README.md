@@ -35,7 +35,6 @@ This project focuses on clean architecture, modular design, database separation,
 - 📜 Message history with pagination
 - 🗄️ PostgreSQL for relational data
 - ⚡ Centralized error handling
-- 🧪 Automated testing with Jest and Supertest
 
 ---
 
@@ -94,8 +93,6 @@ flowchart TD
 | NoSQL Database | Firebase Firestore |
 | Real-Time Communication | Socket.IO |
 | Validation | Zod |
-| Testing | Jest, Supertest, socket.io-client |
-
 ---
 
 ## 📁 Project Structure
@@ -168,8 +165,8 @@ Make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-url>
-cd <project-folder>
+git clone https://github.com/Pradeep8051/chat-backend.git
+cd <chat-backend>
 ```
 
 ### 2. Install Dependencies
